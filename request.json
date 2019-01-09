@@ -1,0 +1,80 @@
+{
+    "album":
+    {
+        "album_type": "album",
+        "artists": [
+        {
+            "external_urls":
+            {
+                "spotify": "https://open.spotify.com/artist/4j56EQDQu5XnL7R3E9iFJT"
+            },
+            "href": "https://api.spotify.com/v1/artists/4j56EQDQu5XnL7R3E9iFJT",
+            "id": "4j56EQDQu5XnL7R3E9iFJT",
+            "name": "Young the Giant",
+            "type": "artist",
+            "uri": "spotify:artist:4j56EQDQu5XnL7R3E9iFJT"
+        }],
+        "available_markets": ["AD", "AE", "AR", "AT", "AU", "BE", "BG", "BH", "BO", "BR", "CA", "CH", "CL", "CO", "CR", "CY", "CZ", "DE", "DK", "DO", "DZ", "EC", "EE", "EG", "ES", "FI", "FR", "GB", "GR", "GT", "HK", "HN", "HU", "ID", "IE", "IL", "IS", "IT", "JO", "JP", "KW", "LB", "LI", "LT", "LU", "LV", "MA", "MC", "MT", "MX", "MY", "NI", "NL", "NO", "NZ", "OM", "PA", "PE", "PH", "PL", "PS", "PT", "PY", "QA", "RO", "SA", "SE", "SG", "SK", "SV", "TH", "TN", "TR", "TW", "US", "UY", "VN", "ZA"],
+        "external_urls":
+        {
+            "spotify": "https://open.spotify.com/album/6blMxezujKgPe8HjHNveuG"
+        },
+        "href": "https://api.spotify.com/v1/albums/6blMxezujKgPe8HjHNveuG",
+        "id": "6blMxezujKgPe8HjHNveuG",
+        "images": [
+        {
+            "height": 640,
+            "url": "https://i.scdn.co/image/3ecbbc43d2177c6268268cc63fefb73ba72da72f",
+            "width": 640
+        },
+        {
+            "height": 300,
+            "url": "https://i.scdn.co/image/abd1bf557bafb2bec9f34db18e9b7da620b30e8e",
+            "width": 300
+        },
+        {
+            "height": 64,
+            "url": "https://i.scdn.co/image/e9c7681cea6bf1d85fef2d62cdaf0bb96a9f9ef6",
+            "width": 64
+        }],
+        "name": "Mirror Master",
+        "release_date": "2018-10-12",
+        "release_date_precision": "day",
+        "total_tracks": 12,
+        "type": "album",
+        "uri": "spotify:album:6blMxezujKgPe8HjHNveuG"
+    },
+    "artists": [
+    {
+        "external_urls":
+        {
+            "spotify": "https://open.spotify.com/artist/4j56EQDQu5XnL7R3E9iFJT"
+        },
+        "href": "https://api.spotify.com/v1/artists/4j56EQDQu5XnL7R3E9iFJT",
+        "id": "4j56EQDQu5XnL7R3E9iFJT",
+        "name": "Young the Giant",
+        "type": "artist",
+        "uri": "spotify:artist:4j56EQDQu5XnL7R3E9iFJT"
+    }],
+    "available_markets": ["AD", "AE", "AR", "AT", "AU", "BE", "BG", "BH", "BO", "BR", "CA", "CH", "CL", "CO", "CR", "CY", "CZ", "DE", "DK", "DO", "DZ", "EC", "EE", "EG", "ES", "FI", "FR", "GB", "GR", "GT", "HK", "HN", "HU", "ID", "IE", "IL", "IS", "IT", "JO", "JP", "KW", "LB", "LI", "LT", "LU", "LV", "MA", "MC", "MT", "MX", "MY", "NI", "NL", "NO", "NZ", "OM", "PA", "PE", "PH", "PL", "PS", "PT", "PY", "QA", "RO", "SA", "SE", "SG", "SK", "SV", "TH", "TN", "TR", "TW", "US", "UY", "VN", "ZA"],
+    "disc_number": 1,
+    "duration_ms": 249746,
+    "explicit": False,
+    "external_ids":
+    {
+        "isrc": "USAT21810821"
+    },
+    "external_urls":
+    {
+        "spotify": "https://open.spotify.com/track/4s8PTe1uUoqcaAmveIKAxJ"
+    },
+    "href": "https://api.spotify.com/v1/tracks/4s8PTe1uUoqcaAmveIKAxJ",
+    "id": "4s8PTe1uUoqcaAmveIKAxJ",
+    "is_local": False,
+    "name": "Mirror Master",
+    "popularity": 49,
+    "preview_url": "https://p.scdn.co/mp3-preview/cc00da0d316b646023d3fb2f4cf30123b87a9298?cid=6e03e8c618f8447ea5f9468a2515b6c7",
+    "track_number": 12,
+    "type": "track",
+    "uri": "spotify:track:4s8PTe1uUoqcaAmveIKAxJ"
+}

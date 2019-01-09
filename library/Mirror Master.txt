@@ -1,0 +1,17 @@
+#album
+@name Mirror Master
+@artist Young the Giant
+@cover https://i.scdn.co/image/3ecbbc43d2177c6268268cc63fefb73ba72da72f
+
+https://open.spotify.com/track/67YPjbcxUypwNOwYBZquq1
+https://open.spotify.com/track/4bsMM8V87y5igGk6urk6b7
+https://open.spotify.com/track/14KP6cmTImZmrcAC5m0Azd
+https://open.spotify.com/track/649o53ULWYN1y7V2OI5kgo
+https://open.spotify.com/track/17UvqEUnFxX3jyLAqiIsCw
+https://open.spotify.com/track/7c2nxdvX2qbrT6ilCID2TG
+https://open.spotify.com/track/2tXxLxP92HeYt4nojiDn7g
+https://open.spotify.com/track/14hMu4JnYnLj0FBuFfHNNN
+https://open.spotify.com/track/7lLLFbYh5JpOTnQCetSfWn
+https://open.spotify.com/track/7DfWLV07uZV3rwoKvO6TjI
+https://open.spotify.com/track/3rSkiyzwE3oQXhvMqobU0e
+https://open.spotify.com/track/4s8PTe1uUoqcaAmveIKAxJ
