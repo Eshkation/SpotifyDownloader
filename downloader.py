@@ -1,8 +1,7 @@
 from library.internal import *
 from library.spotify import LoadTrack, LoadAlbum
-
+from library.youtube import SearchSong
 import re
-
 
 class Downloader:
     def __init__(self, dumpFile):
@@ -22,6 +21,7 @@ class Downloader:
                     track = LoadTrack(trackId)
 
                     console.success('Found track in dump file: =={0}== by =={1}==, starting youtube search'.format(track.metadata.name, track.metadata.artist))
-                    print('\n')
+                    SearchSong(track)
+                    print('')
 
 a = Downloader('library/Mirror Master.txt')
