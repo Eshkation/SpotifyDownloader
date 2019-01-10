@@ -1,3 +1,5 @@
+# this is purely an example folder
+
 from library.internal import *
 from library.spotify import LoadTrack, LoadAlbum
 from library.youtube import SearchSong, DownloadVideo
@@ -26,6 +28,3 @@ class Downloader:
                     if (youtubeVideo.metadata):
                     	DownloadVideo(track, youtubeVideo, saveDir)
                     print('')
-
-
-a = Downloader('library/Mirror Master.txt')
