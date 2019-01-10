@@ -1,6 +1,6 @@
 from library.internal import *
 from library.spotify import LoadTrack, LoadAlbum
-from library.youtube import SearchSong
+from library.youtube import SearchSong, DownloadVideo
 import re
 
 class Downloader:
@@ -12,6 +12,7 @@ class Downloader:
     def readFile(self):
         console.info('opening file =={0}=='.format(self.dumpFilePath))
         file = open(self.dumpFilePath, 'r').read()
+        saveDir = self.dumpFilePath.replace('.txt', '')
 
         for line in file.split('\n'):
             if (line.startswith('http')):
@@ -21,7 +22,10 @@ class Downloader:
                     track = LoadTrack(trackId)
 
                     console.success('Found track in dump file: =={0}== by =={1}==, starting youtube search'.format(track.metadata.name, track.metadata.artist))
-                    SearchSong(track)
+                    youtubeVideo = SearchSong(track)
+                    if (youtubeVideo.metadata):
+                    	DownloadVideo(track, youtubeVideo, saveDir)
                     print('')
+
 
 a = Downloader('library/Mirror Master.txt')

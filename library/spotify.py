@@ -2,15 +2,18 @@
 
 from library.internal import *
 from spotipy.oauth2 import SpotifyClientCredentials
-
-SPCredentials = SpotifyClientCredentials(
-    client_id = '',
-    client_secret = ''
-)
+from dotenv import load_dotenv
+load_dotenv()
 
 import os
 import spotipy
 import time
+
+SPCredentials = SpotifyClientCredentials(
+    client_id = os.environ.get('SPOTIFY_CLIENT_ID', ''),
+    client_secret = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
+)
+
 
 class LoadTrack:
     def __init__(self, trackId):
@@ -31,13 +34,17 @@ class LoadTrack:
         self.metadata.number = track.track_number
         self.metadata.duration = track.duration_ms / 1e3
         self.metadata.cover = track.album.images[0]['url']
+        self.metadata.releaseDate = track.album.release_date
+        trackArtists = []
+        for artist in track.artists:
+            trackArtists.append(artist['name'])
+        self.metadata.artist = ';'.join(trackArtists)
 
         self.metadata.albumName = track.album.name
         albumArtist = []
         for artist in track.album.artists:
             albumArtist.append(artist['name'])
-
-        self.metadata.artist = ' & '.join(albumArtist)
+        self.metadata.albumArtist = ';'.join(albumArtist)
 
 class LoadAlbum:
     def __init__(self, albumId, savePath = ''):

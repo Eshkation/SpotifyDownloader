@@ -21,27 +21,27 @@ class console:
     """
 
     @staticmethod
-    def info(message):
-        console.__display__('lightblue_ex', 'info', message)
+    def info(message, end = None):
+        console.__display__('lightblue_ex', 'info', message, end)
 
     @staticmethod
-    def warning(message):
-        console.__display__('yellow', 'warning', message)
+    def warning(message, end = None):
+        console.__display__('lightyellow_ex', 'warning', message, end)
 
     @staticmethod
-    def success(message):
-        console.__display__('lightgreen_ex', 'success', message)
+    def success(message, end = None):
+        console.__display__('lightgreen_ex', 'success', message, end)
 
     @staticmethod
-    def error(message):
-        console.__display__('lightred_ex', 'error', message)
+    def error(message, end = None):
+        console.__display__('lightred_ex', 'error', message, end)
 
     @staticmethod
-    def debug(message):
-        console.__display__('magenta', 'debug', message)
+    def debug(message, end = None):
+        console.__display__('magenta', 'debug', message, end)
 
     @staticmethod
-    def __display__(color, prefix, message):
+    def __display__(color, prefix, message, end = '\n'):
         background = getattr(colorama.Back, color.upper())
         foreground = getattr(colorama.Fore, color.upper())
         textColor = getattr(colorama.Fore, 'WHITE')
@@ -56,4 +56,4 @@ class console:
             message = message,
             prefix = prefix.upper(),
             textColor = textColor
-        ))
+        ), end = end)
