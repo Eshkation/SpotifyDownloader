@@ -1,5 +1,5 @@
-.txt
-.json
+*.txt
+*.json
 .env
 __pycache__/
 *.py[cod]
