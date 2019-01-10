@@ -11,6 +11,7 @@ import os
 import re
 import requests
 import youtube_dl
+import isodate
 
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_CLIENT_KEY', '')
 
@@ -22,7 +23,7 @@ class YoutubeDLLogger:
 		console.warning(msg)
 
 	def error(self, msg):
-		console.error(msg)
+		console.error(msg.replace('ERROR: ', ''))
 
 class DownloadVideo:
 	def __init__(self, track, video, customDir = ''):
@@ -32,13 +33,15 @@ class DownloadVideo:
 		self.downloadVelocity = []
 		self.filePath = ''
 
+		self.SUCCESS = False
 		self.startDownload()
 
 	def startDownload(self):
 		filePathName = os.path.join(self.savePath, '{0} - {1}.%(ext)s'.format(self.track.artist, self.track.name))
 		if (os.path.exists(filePathName.replace('%(ext)s', 'mp3'))):
-			console.warning('Audio file for {0} already exists, skipping download'.format(self.track.name))
+			console.warning('Audio file for =={0} - {1}== already exists, skipping download'.format(self.track.artist, self.track.name))
 			self.filePath = filePathName.replace('%(ext)s', 'mp3')
+			self.SUCCESS = True
 		else:
 			ydl_opts = {
 				'format': 'bestaudio/best',
@@ -54,10 +57,13 @@ class DownloadVideo:
 				'get-filename': True
 			}
 			console.info('starting youtube download')
-			with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-				inhe = ydl.download([self.video.id.videoId])
-		console.info('applying metadata to file')
-		self.applyTrackMetadata()
+			try:
+				with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+					ydl.download([self.video.id.videoId])
+				console.info('applying metadata to file')
+				self.applyTrackMetadata()
+			except Exception as error:
+				self.SUCCESS = False
 
 	def applyTrackMetadata(self):
 		audioFile = ID3(self.filePath)
@@ -87,7 +93,7 @@ class DownloadVideo:
 		# album artist
 		audioFile['TPE2'] = TPE2(
 			encoding = 3,
-			text = self.track.albumArtist
+			text = self.track.albumArtist.split(';')
 		)
 
 		# track name
@@ -105,11 +111,12 @@ class DownloadVideo:
 		# track artist name
 		audioFile['TPE1'] = TPE1(
 			encoding = 3,
-			text = self.track.artist
+			text = self.track.featuredArtists.split(';')
 		)
 
 		albumCoverArt.close()
 		audioFile.save(v2_version=3)
+		self.SUCCESS = True
 
 	def displayProgress(self, d):
 		display = objectify(d)
@@ -141,27 +148,53 @@ class SearchSong:
 		self.requestSearch()
 
 	def requestSearch(self):
-		query = '{0} - {1}'.format(self.track.artist, self.track.name)
+		query = '{0} - {1} audio'.format(self.track.artist, self.track.name)
 		apiRequest = requests.get('https://www.googleapis.com/youtube/v3/search', params = {
 				'key': YOUTUBE_API_KEY,
-				'maxResults': 20,
+				'maxResults': 50,
 				'part': 'snippet,id',
 				'q': query,
 			}).text
 		search = json.loads(apiRequest)
+		queryIds = []
+
+		for video in search['items']:
+			video = objectify(video)
+			if (video.id.kind == 'youtube#video'):
+				queryIds.append(video.id.videoId)
+
+		apiRequest = requests.get('https://www.googleapis.com/youtube/v3/videos', params = {
+				'key': YOUTUBE_API_KEY,
+				'id': ','.join(queryIds),
+				'part': 'contentDetails'
+			}).text
+
+		duration = json.loads(apiRequest)
 
 		choosenVideo = [{}, -100]
 		for video in search['items']:
 			video = objectify(video)
-			videoPoints = self.attributePoints(video)
+			if (video.id.kind == 'youtube#video'):
+				for ytv in duration['items']:
+					ytv = objectify(ytv)
+					try:
+						if (ytv.id == video.id.videoId):
+							video.duration = ytv.contentDetails.duration
+							video.duration = isodate.parse_duration(video.duration).total_seconds()
+							break
+					except:
+						video.duration = 0
+				videoPoints = self.attributePoints(video)
 
-			if (videoPoints > choosenVideo[1]):
-				choosenVideo = [video, videoPoints]
-		if (choosenVideo[1] > 3):
+				if (videoPoints > choosenVideo[1]):
+					choosenVideo = [video, videoPoints]
+
+		if (choosenVideo[1] >= 3):
 			console.success('video =={0}== ranked =={1}== points (=={2}==)'.format(choosenVideo[0].snippet.title, choosenVideo[1], choosenVideo[0].id.videoId))
 			self.metadata = choosenVideo[0]
 		else:
 			self.metadata = False
+			self.SUCCESS = False
 			console.error('could not find a suitable video, the highest one ranked =={0}== points and is =={1}== (=={2}==)'.format(choosenVideo[1], choosenVideo[0].snippet.title, choosenVideo[0].id.videoId))
 
 	def attributePoints(self, video):
@@ -181,6 +214,12 @@ class SearchSong:
 		# video title has "official" in it
 		if (re.search(r'of(f|)ici(a|e)l', title)):
 			points += 6
+
+		if (re.search(r'of(f|)ici(a|e)l audio', title)):
+			if ('remix' in title):
+				points += 2
+			else:
+				points += 12
 
 		if (re.search(r'{0}(\s|)(:|-)(\s|){1}'.format(self.track.artist.lower(), self.track.name.lower()), title)):
 			points += 6
@@ -212,5 +251,9 @@ class SearchSong:
 		# video was found in a vevo channel
 		if (video.snippet.channelTitle.lower() == self.track.artist.lower()+'vevo'):
 			points += 9
+
+		dur_diff = abs(video.duration - self.track.duration)
+		if (dur_diff < 10):
+			points += 15-int(dur_diff)
 
 		return points
