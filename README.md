@@ -36,4 +36,8 @@ You can also provide these arguments in the command line:
 
 `init.py --nofilename` removes the dump file name from the destination path
 
+
+### Example
+`init.py -s "https://open.spotify.com/album/0cjMGmZKB9ZWzcb0VcASpf"` Will create a dump file with the album name in the origin folder.
+`init.py -d "After the Disco.txt" -f "downloads/Favorites" -nf` will download the tracks found in `After the Disco.txt` to folder `downloads/Favorites`, the `-nf` param makes so the directory `/After the Disco` is not included in the save path.
 ***
