@@ -47,6 +47,7 @@ class DownloadVideo:
 
 	def startDownload(self):
 		filePathName = os.path.join(self.savePath, '{0} - {1}.%(ext)s'.format(self.track.artist, self.track.name))
+		filePathName = filePathName.replace('/', '_')
 		if (os.path.exists(filePathName.replace('%(ext)s', 'mp3'))):
 			console.warning('Audio file for =={0} - {1}== already exists, skipping download'.format(self.track.artist, self.track.name))
 			self.filePath = filePathName.replace('%(ext)s', 'mp3')

@@ -3,9 +3,11 @@ from library.spotify import *
 from library.youtube import *
 
 import argparse
-import os
 import colorama
+import datetime
+import os
 import re
+import time
 
 class MainProcessor:
 	def __init__(self):
@@ -19,6 +21,7 @@ class MainProcessor:
 		self.saveDir = ''
 		self.includeDumpFileName = True
 
+		self.processStart = 0
 		self.getGivenParams()
 
 	def getGivenParams(self):
@@ -56,6 +59,8 @@ class MainProcessor:
 			self.prepareDownload(params.download)
 
 	def prepareDownload(self, dumpFile):
+		self.processStart = time.time()
+
 		contents = open(dumpFile, 'r').read()
 		contentLines = contents.split('\n')
 		if (self.includeDumpFileName):
@@ -83,6 +88,8 @@ class MainProcessor:
 
 			with open(dumpFile, 'w+') as stream:
 				stream.write('\n'.join(contentLines))
+		totalSeconds = int(time.time() - self.processStart)
+		console.debug('Total process time was =={0:>08}=='.format(str(datetime.timedelta(seconds = totalSeconds))))
 
 	def identifyGivenSource(self, urlSource):
 		privatePlaylist = re.match('http(s|)://open.spotify.com/user/(.*?)/playlist/(.*)', urlSource)
