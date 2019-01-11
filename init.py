@@ -72,9 +72,9 @@ class MainProcessor:
 		while contentLines:
 			line = contentLines.pop(0)
 			if (line.startswith('http')):
-				trackId = re.match('http(s|)://open.spotify.com/track/(.*)', line)
+				trackId = re.match('http(s|)://open.spotify.com/track/([^##]+)', line)
 				if (trackId):
-					trackId = trackId.group(2)
+					trackId = trackId.group(2).strip()
 					track = LoadTrack(trackId)
 
 					console.success('Found track in dump file: =={0}== by =={1}==, starting youtube search'.format(track.metadata.name, track.metadata.artist))

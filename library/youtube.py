@@ -178,7 +178,7 @@ class SearchSong:
 				'key': YOUTUBE_API_KEY,
 				'maxResults': 50,
 				'part': 'snippet,id',
-				'q': query,
+				'q': re.sub(r'\((feat.|)(.*?)\)', '', query),
 			}).text
 		search = json.loads(apiRequest)
 		queryIds = []
@@ -225,8 +225,10 @@ class SearchSong:
 	def attributePoints(self, video):
 		points = 0
 		title = re.sub(r'[^\w\s]', '', video.snippet.title.lower())
+		title = re.sub(r'\((feat.|)(.*?)\)', '', title)
 		fixedArtistName = re.sub(r'[^\w\s]', '', self.track.artist.lower())
-		fixedTrackName =  re.sub(r'[^\w\s]', '', self.track.name.lower())
+		fixedTrackName = re.sub(r'[^\w\s]', '', self.track.name.lower())
+		fixedTrackName = re.sub(r'\((feat.|)(.*?)\)', '', fixedTrackName)
 		fixedChannelTitle = re.sub(r'[^\w\s]', '', video.snippet.channelTitle.lower())
 
 		# either video title has track name
@@ -250,10 +252,13 @@ class SearchSong:
 			if (not 'remix' in fixedTrackName and 'remix' in title):
 				points += 2
 			else:
-				points += 15
+				points += 20
 
 		if (re.search(r'unof(f|)ici(a|e)l audio', title)):
 			points -= 9
+
+		if (re.search(r'of(f|)ici(a|e)l music (video|)', title)):
+			points += 15
 
 		if (re.search(r'{0}(\s|)(:|-)(\s|){1}'.format(fixedArtistName, fixedTrackName), title)):
 			points += 6
@@ -276,6 +281,10 @@ class SearchSong:
 
 		if (not 'instrumental' in fixedTrackName and 'instrumental' in title):
 			points -= 12
+
+		if (not any(ext in fixedTrackName for ext in ['glastonbury', 'lollapalooza', 'coachella'])):
+			if any(ext in title for ext in ['glastonbury', 'lollapalooza', 'coachella']):
+				points -= 12
 
 		# artist name is the channel name
 		if (re.sub(r'[\W]+', '', video.snippet.channelTitle.lower()) == re.sub(r'[\W]+', '', fixedArtistName)):

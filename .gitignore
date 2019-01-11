@@ -1,6 +1,6 @@
 # debug files and folders
 *.txt
-*.errors
+*.txt.errors
 *.json
 test.py
 !requirements.txt
