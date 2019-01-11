@@ -13,6 +13,7 @@ import re
 import requests
 import sys
 import time
+import traceback
 import youtube_dl
 
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_CLIENT_KEY', '')
@@ -73,10 +74,11 @@ class DownloadVideo:
 					ydl.download([self.video.id.videoId])
 				console.info('applying metadata to file')
 				self.applyTrackMetadata()
-			except Exception as error:
-				console.error(str(error))
+			except Exception:
+				error = traceback.format_exc().replace('\n', ' ')
+				console.error(error)
 				self.SUCCESS = False
-				self.EXCEPTION = str(error)
+				self.EXCEPTION = error
 		console.debug('download process took =={0}s== to finish\n'.format(int(time.time()-self.start)))
 
 	def applyTrackMetadata(self):
