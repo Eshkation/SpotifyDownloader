@@ -48,17 +48,17 @@ class console:
     def __display__(color, prefix, message, end = '\n'):
         background = getattr(colorama.Back, color.upper())
         foreground = getattr(colorama.Fore, color.upper())
-        textColor = getattr(colorama.Fore, 'WHITE')
+        text_color = getattr(colorama.Fore, 'WHITE')
 
-        message = re.sub(r'==(.*?)==', lambda highlight: '{0}{1}{2}'.format(foreground, highlight.group(1), textColor), message)
+        message = re.sub(r'==(.*?)==', lambda highlight: '{0}{1}{2}'.format(foreground, highlight.group(1), text_color), message)
         message = message[0].upper()+message[1:]
 
-        print('{background} {blackBackground} {foreground}{prefix} {textColor}{blackBackground}{message}'.format(
+        print('{background} {black_background} {foreground}{prefix} {text_color}{black_background}{message}'.format(
         	background = background,
             background_color = background,
-            blackBackground = getattr(colorama.Back, 'BLACK'),
+            black_background = getattr(colorama.Back, 'BLACK'),
             foreground = foreground,
             message = message,
             prefix = prefix.upper(),
-            textColor = textColor
+            text_color = text_color
         ), end = end)

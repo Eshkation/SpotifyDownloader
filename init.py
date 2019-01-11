@@ -18,13 +18,13 @@ class MainProcessor:
 /___/ .__/\___/\__/_/_/ \_, /____/\___/__,__/_//_/_/\___/\_,_/\_,_/\__/_/
    /_/                 /___/
 """)
-		self.saveDir = ''
-		self.includeDumpFileName = True
+		self.save_directory = ''
+		self.include_dump_file_name = True
 
-		self.processStart = 0
-		self.getGivenParams()
+		self.process_start_time = 0
+		self.get_given_params()
 
-	def getGivenParams(self):
+	def get_given_params(self):
 		parser = argparse.ArgumentParser(description='Process some integers.')
 		parser.add_argument('-s', '--source',
 			help = 'The source link (can either be a spotify album or playlist link)'
@@ -43,73 +43,73 @@ class MainProcessor:
 		params = objectify(vars(params))
 
 		if (params.folder):
-			self.saveDir = params.folder
-			console.config('Save directory set to =={0}=='.format(self.saveDir))
+			self.save_directory = params.folder
+			console.config('Save directory set to =={0}=='.format(self.save_directory))
 
 		if (params.nofilename):
-			self.includeDumpFileName = False
+			self.include_dump_file_name = False
 			console.config('Save directory will not include dump file name')
 
 		if (params.source):
 			console.config('given source is =={0}==, identifying url type'.format(params.source))
-			self.identifyGivenSource(params.source)
+			self.identify_given_source(params.source)
 
 		elif (params.download):
 			console.config('starting download from =={0}=='.format(params.download))
-			self.prepareDownload(params.download)
+			self.prepare_download(params.download)
 
-	def prepareDownload(self, dumpFile):
-		self.processStart = time.time()
+	def prepare_download(self, dump_file):
+		self.process_start_time = time.time()
 
-		contents = open(dumpFile, 'r').read()
-		contentLines = contents.split('\n')
-		if (self.includeDumpFileName):
-			saveDir = os.path.join(self.saveDir, os.path.basename(dumpFile).rsplit('.', 1)[0])
+		contents = open(dump_file, 'r').read()
+		content_lines = contents.split('\n')
+		if (self.include_dump_file_name):
+			save_directory = os.path.join(self.save_directory, os.path.basename(dump_file).rsplit('.', 1)[0])
 		else:
-			saveDir = self.saveDir
-		console.config('saving tracks to =={0}=='.format(saveDir))
+			save_directory = self.save_directory
+		console.config('saving tracks to =={0}=='.format(save_directory))
 
-		while contentLines:
-			line = contentLines.pop(0)
+		while content_lines:
+			line = content_lines.pop(0)
 			if (line.startswith('http')):
-				trackId = re.match('http(s|)://open.spotify.com/track/([^##]+)', line)
-				if (trackId):
-					trackId = trackId.group(2).strip()
-					track = LoadTrack(trackId)
+				track_id = re.match('http(s|)://open.spotify.com/track/([^##]+)', line)
+				if (track_id):
+					track_id = track_id.group(2).strip()
+					track = LoadTrack(track_id)
 
 					console.success('Found track in dump file: =={0}== by =={1}==, starting youtube search'.format(track.metadata.name, track.metadata.artist))
-					youtubeVideo = SearchSong(track)
-					if (youtubeVideo.metadata):
-						download = DownloadVideo(track, youtubeVideo, saveDir)
+					youtube_video = SearchSong(track)
+					if (youtube_video.metadata):
+						download = DownloadVideo(track, youtube_video, save_directory)
 						if (not download.SUCCESS):
-							console.warning('Could not successfully process =={0}=='.format(trackId))
-							with open(dumpFile+'.errors', 'a') as stream:
+							console.warning('Could not successfully process =={0}=='.format(track_id))
+							with open(dump_file+'.errors', 'a') as stream:
 								stream.write('{0} ## {1}\n'.format(line, download.EXCEPTION))
 
-			with open(dumpFile, 'w+') as stream:
-				stream.write('\n'.join(contentLines))
-		totalSeconds = int(time.time() - self.processStart)
-		console.debug('Total process time was =={0:>08}=='.format(str(datetime.timedelta(seconds = totalSeconds))))
+			with open(dump_file, 'w+') as stream:
+				stream.write('\n'.join(content_lines))
+		total_seconds = int(time.time() - self.process_start_time)
+		console.debug('Total process time was =={0:>08}=='.format(str(datetime.timedelta(seconds = total_seconds))))
 
-	def identifyGivenSource(self, urlSource):
-		privatePlaylist = re.match('http(s|)://open.spotify.com/user/(.*?)/playlist/(.*)', urlSource)
-		publicPlaylist = re.match('http(s|)://open.spotify.com/playlist/(.*)', urlSource)
-		album = re.match('http(s|)://open.spotify.com/album/(.*)', urlSource)
+	def identify_given_source(self, source_url):
+		private_playlist = re.match('http(s|)://open.spotify.com/user/(.*?)/playlist/(.*)', source_url)
+		public_playlist = re.match('http(s|)://open.spotify.com/playlist/(.*)', source_url)
+		album = re.match('http(s|)://open.spotify.com/album/(.*)', source_url)
 
-		if (privatePlaylist):
-			username, playlistId = privatePlaylist.group(2), privatePlaylist.group(3)
-			console.config('Private playlist request found, username is =={0}== and playlist id is =={1}=='.format(username, playlistId))
-			LoadPlaylist(username, playlistId, self.saveDir)
+		if (private_playlist):
+			username, playlist_id = private_playlist.group(2), private_playlist.group(3)
+			console.config('Private playlist request found, username is =={0}== and playlist id is =={1}=='.format(username, playlist_id))
+			LoadPlaylist(username, playlist_id, self.save_directory)
 
-		elif (publicPlaylist):
-			playlistId = publicPlaylist.group(2)
-			console.config('Playlist request found, id is =={0}=='.format(playlistId))
-			LoadPlaylist('', playlistId, self.saveDir)
+		elif (public_playlist):
+			playlist_id = public_playlist.group(2)
+			console.config('Playlist request found, id is =={0}=='.format(playlist_id))
+			LoadPlaylist('', playlist_id, self.save_directory)
 
 		elif (album):
-			albumId = album.group(2)
-			console.config('Album request found, id is =={0}=='.format(albumId))
-			LoadAlbum(albumId, self.saveDir)
+			album_id = album.group(2)
+			console.config('Album request found, id is =={0}=='.format(album_id))
+			LoadAlbum(album_id, self.save_directory)
 
 
 MainProcessor()
