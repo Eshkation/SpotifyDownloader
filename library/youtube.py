@@ -227,7 +227,7 @@ class SearchSong:
 		fixedChannelTitle = re.sub(r'[^\w\s]', '', video.snippet.channelTitle.lower())
 
 		# either video title has track name
-		if (self.track.name.lower() in title):
+		if (fixedTrackName in title):
 			points += 3
 		else:
 			points -= 30
