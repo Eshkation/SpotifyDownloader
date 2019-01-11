@@ -1,10 +1,12 @@
-*.txt
+# debug files and folders
+*.tx
 *.json
-.env
+!requirements.txt
+
+Favorites/
+downloads/
 __pycache__/
 	*.py[cod]
-Favorites
-Download
-test.py
 
-!requirements.txt
+# Environments
+.env
