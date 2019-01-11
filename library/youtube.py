@@ -263,8 +263,13 @@ class SearchSong:
 		if (re.search(r'unof(f|)ici(a|e)l music (video|)', title)):
 			points -= 20
 
+		# artist name - track name
 		if (re.search(r'{0}(\s|)(:|-)(\s|){1}'.format(fx_artist_name, fx_track_name), title)):
-			points += 6
+			points += 12
+
+		# track name - artist name
+		if (re.search(r'{0}(\s|)(:|-)(\s|){1}'.format(fx_track_name, fx_artist_name), title)):
+			points += 12
 
 		# video title has live in it, but track doesn't
 		if (not 'live' in fx_track_name and 'live' in title):
