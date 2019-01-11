@@ -81,7 +81,7 @@ class MainProcessor:
 					file_path_name = os.path.join(save_directory, '{0} - {1}.%(ext)s'.format(track.metadata.artist, track.metadata.name))
 					file_path_name = file_path_name.replace('/', '_')
 					if (os.path.exists(file_path_name.replace('%(ext)s', 'mp3'))):
-						console.warning('Audio file for =={0} - {1}== already exists, skipping download'.format(track.metadata.name, track.metadata.name))
+						console.warning('Audio file for =={0} - {1}== already exists, skipping download'.format(track.metadata.artist, track.metadata.name))
 					else:
 						youtube_video = SearchSong(track)
 						if (youtube_video.metadata):
