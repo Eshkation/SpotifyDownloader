@@ -2,7 +2,10 @@
 *.json
 .env
 __pycache__/
-*.py[cod]
+	*.py[cod]
 Favorites
 Download
 test.py
+
+
+!requirements.txt
