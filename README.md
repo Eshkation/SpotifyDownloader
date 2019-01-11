@@ -33,6 +33,7 @@ Open `init.py` on cmd suplying the needed arguments.
 You can also provide these arguments in the command line:
 
 `init.py --folder path --source ...` changes the files destination path.
+
 `init.py --nofilename` removes the dump file name from the destination path
 
 ***
