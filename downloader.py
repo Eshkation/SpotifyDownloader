@@ -13,10 +13,12 @@ class Downloader:
 
 	def readFile(self):
 		console.info('opening file =={0}=='.format(self.dumpFilePath))
-		file = open(self.dumpFilePath).readlines()
+		file = open(self.dumpFilePath, 'r').read()
+		lines = file.split('\n')
 		saveDir = self.dumpFilePath.replace('.txt', '')
 
-		for i, line in enumerate(file[:]):
+		while lines:
+			line = lines.pop(0)
 			if (line.startswith('http')):
 				trackId = re.match('http(s|)://open.spotify.com/track/(.*)', line)
 				if (trackId):
@@ -27,16 +29,17 @@ class Downloader:
 					youtubeVideo = SearchSong(track)
 					if (youtubeVideo.metadata):
 						download = DownloadVideo(track, youtubeVideo, saveDir)
-						if (download.SUCCESS):
-							del file[i]
+						if (not download.SUCCESS):
+							console.warning('Could not successfully process =={0}=='.format(trackId))
+							f = open(saveDir+'.errors.txt', 'a')
+							f.write(line+'\n')
+							f.close()
 
-						else:
-							console.warning('Could not successfully process =={0}==, keeping it in file'.format(trackId))
-							file[i] = '## '+file[i]
+			elif (line.startswith('##')):
+				pass
 
-					print('\n' * 40)
-			open(self.dumpFilePath, 'w').writelines(file)
-
-
+			f = open(self.dumpFilePath, 'w')
+			f.write('\n'.join(lines))
+			f.close()
 
 Downloader('Favorites.txt')

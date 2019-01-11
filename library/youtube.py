@@ -6,12 +6,14 @@ from urllib.request import urlopen
 
 load_dotenv()
 
+import isodate
 import json
 import os
 import re
 import requests
+import sys
+import time
 import youtube_dl
-import isodate
 
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_CLIENT_KEY', '')
 
@@ -34,6 +36,13 @@ class DownloadVideo:
 		self.filePath = ''
 
 		self.SUCCESS = False
+		self.ALREADY_EXISTS = False
+		self.EXCEPTION = ''
+
+		self.start = time.time()
+		self.startDownloadTime = 0
+		self.downloadSteps = 0
+		self.totalVelocity = 0
 		self.startDownload()
 
 	def startDownload(self):
@@ -42,6 +51,7 @@ class DownloadVideo:
 			console.warning('Audio file for =={0} - {1}== already exists, skipping download'.format(self.track.artist, self.track.name))
 			self.filePath = filePathName.replace('%(ext)s', 'mp3')
 			self.SUCCESS = True
+			self.ALREADY_EXISTS = True
 		else:
 			ydl_opts = {
 				'format': 'bestaudio/best',
@@ -63,7 +73,10 @@ class DownloadVideo:
 				console.info('applying metadata to file')
 				self.applyTrackMetadata()
 			except Exception as error:
+				console.error(str(error))
 				self.SUCCESS = False
+				self.EXCEPTION = str(error)
+		console.debug('download process took =={0}s== to finish\n'.format(int(time.time()-self.start)))
 
 	def applyTrackMetadata(self):
 		audioFile = ID3(self.filePath)
@@ -121,6 +134,8 @@ class DownloadVideo:
 	def displayProgress(self, d):
 		display = objectify(d)
 		if (display.status == 'downloading'):
+			self.downloadSteps += 1
+			self.totalVelocity += display.speed
 			parts = 30
 			downloadedPercent = round((float(display._percent_str.replace('%', '')) * parts) / 100)
 			unfinishedPercent = parts-downloadedPercent
@@ -131,14 +146,21 @@ class DownloadVideo:
 			progressBar = '[=={0}=={1}]'.format(downloadedBar, unfinishedBar)
 			text = '{0} {1} downloaded, estimated download time: =={2}== at =={3}=='.format(progressBar, display._percent_str, display._eta_str, display._speed_str)
 
-			if (downloadedPercent == parts):
+			if (downloadedPercent == 0):
+				self.startDownloadTime = time.time()
+
+			elif (downloadedPercent == parts):
+				text = 'file downloaded, total download time: =={0}s==, average velocity: =={1:.2f} KiB/s=='.format(int(time.time() - self.startDownloadTime), (self.totalVelocity/self.downloadSteps)/1e3)
+				sys.stdout.write('\033[K')
 				console.info(text)
 			else:
 				console.info(text, end = '\r')
 
+
 		elif (display.status == 'finished'):
-			console.success('finished downloading, file directory is =={0}==, starting file conversion'.format(display.filename))
-			self.filePath = display.filename.replace('.webm', '.mp3')
+			self.filePath, fileExtension = display.filename.rsplit('.', 1)
+			self.filePath = self.filePath+'.mp3'
+			console.success('finished downloading, file directory is =={0}==, starting file conversion'.format(self.filePath))
 
 class SearchSong:
 	def __init__(self, track):
@@ -148,7 +170,7 @@ class SearchSong:
 		self.requestSearch()
 
 	def requestSearch(self):
-		query = '{0} - {1} audio'.format(self.track.artist, self.track.name)
+		query = '{0} - {1}'.format(self.track.artist, self.track.name)
 		apiRequest = requests.get('https://www.googleapis.com/youtube/v3/search', params = {
 				'key': YOUTUBE_API_KEY,
 				'maxResults': 50,
@@ -199,57 +221,69 @@ class SearchSong:
 
 	def attributePoints(self, video):
 		points = 0
-		title = video.snippet.title.lower()
+		title = re.sub(r'[^\w\s]', '', video.snippet.title.lower())
+		fixedArtistName = re.sub(r'[^\w\s]', '', self.track.artist.lower())
+		fixedTrackName =  re.sub(r'[^\w\s]', '', self.track.name.lower())
+		fixedChannelTitle = re.sub(r'[^\w\s]', '', video.snippet.channelTitle.lower())
 
 		# either video title has track name
 		if (self.track.name.lower() in title):
 			points += 3
 		else:
-			points -= 9
+			points -= 30
 
 		# either video title has artist name
-		if (self.track.artist.lower() in title):
+		if (fixedArtistName in title):
 			points += 3
 
 		# video title has "official" in it
 		if (re.search(r'of(f|)ici(a|e)l', title)):
 			points += 6
 
+		if (re.search(r'unof(f|)ici(a|e)l', title)):
+			points -= 6
+
 		if (re.search(r'of(f|)ici(a|e)l audio', title)):
-			if ('remix' in title):
+			if (not 'remix' in fixedTrackName and 'remix' in title):
 				points += 2
 			else:
-				points += 12
+				points += 15
 
-		if (re.search(r'{0}(\s|)(:|-)(\s|){1}'.format(self.track.artist.lower(), self.track.name.lower()), title)):
+		if (re.search(r'unof(f|)ici(a|e)l audio', title)):
+			points -= 9
+
+		if (re.search(r'{0}(\s|)(:|-)(\s|){1}'.format(fixedArtistName, fixedTrackName), title)):
 			points += 6
 
 		# video title has live in it, but track doesn't
-		if (not 'live' in self.track.name.lower() and 'live' in title):
-			points -= 9
+		if (not 'live' in fixedTrackName and 'live' in title):
+			points -= 15
 
 		# video title has cover in it, but track doesn't
-		if (not 'cover' in self.track.name.lower() and 'cover' in title):
-			points -= 9
+		if (not 'cover' in fixedTrackName and 'cover' in title):
+			points -= 15
 
 		# video title has edit in it, but track doesn't
-		if (not 'edit' in self.track.name.lower() and 'edit' in title):
+		if (not 'edit' in fixedTrackName and 'edit' in title):
 			points -= 3
 
 		# video title has remix in it, but track doesn't
-		if (not 'remix' in self.track.name.lower() and 'remix' in title):
+		if (not 'remix' in fixedTrackName and 'remix' in title):
 			points -= 6
 
+		if (not 'instrumental' in fixedTrackName and 'instrumental' in title):
+			points -= 12
+
 		# artist name is the channel name
-		if (re.sub(r'[\W]+', '', video.snippet.channelTitle.lower()) == re.sub(r'[\W]+', '', self.track.artist.lower())):
+		if (re.sub(r'[\W]+', '', video.snippet.channelTitle.lower()) == re.sub(r'[\W]+', '', fixedArtistName)):
 			points += 6
 
 		# video was found in a youtube topic
-		if (video.snippet.channelTitle.lower() == self.track.artist.lower()+' - topic'):
+		if (fixedChannelTitle == fixedArtistName+' - topic'):
 			points += 9
 
 		# video was found in a vevo channel
-		if (video.snippet.channelTitle.lower() == self.track.artist.lower()+'vevo'):
+		if (fixedChannelTitle == fixedArtistName+'vevo'):
 			points += 9
 
 		dur_diff = abs(video.duration - self.track.duration)

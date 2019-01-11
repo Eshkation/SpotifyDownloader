@@ -41,6 +41,10 @@ class console:
         console.__display__('magenta', 'debug', message, end)
 
     @staticmethod
+    def config(message, end = None):
+        console.__display__('cyan', 'config', message, end)
+
+    @staticmethod
     def __display__(color, prefix, message, end = '\n'):
         background = getattr(colorama.Back, color.upper())
         foreground = getattr(colorama.Fore, color.upper())
@@ -49,7 +53,8 @@ class console:
         message = re.sub(r'==(.*?)==', lambda highlight: '{0}{1}{2}'.format(foreground, highlight.group(1), textColor), message)
         message = message[0].upper()+message[1:]
 
-        print('{foreground}> {prefix} {textColor}{blackBackground}{message}'.format(
+        print('{background} {blackBackground} {foreground}{prefix} {textColor}{blackBackground}{message}'.format(
+        	background = background,
             background_color = background,
             blackBackground = getattr(colorama.Back, 'BLACK'),
             foreground = foreground,

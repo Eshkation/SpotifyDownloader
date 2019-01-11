@@ -24,8 +24,6 @@ class LoadTrack:
 
 		self.trackId = trackId
 		self.metadata = objectify({})
-		console.info('requesting track data, given id is =={0}=='.format(self.trackId))
-
 		self.requestTrackInfo()
 
 	def requestTrackInfo(self):
@@ -62,7 +60,6 @@ class LoadPlaylist:
 
 		console.info('Requesting playlist metadata, given username is =={0}== and playlist id is =={1}=='.format(username or 'none', playlistId))
 		self.requestPlaylistInfo()
-		console.info('requesting playlist tracks')
 		self.requestPlaylistTracks()
 		console.success('finished loading playlist, =={0}== songs were found'.format(len(self.tracks)))
 		self.dumpFile()
@@ -97,9 +94,9 @@ class LoadPlaylist:
 		for track in self.tracks:
 			contents += '{0}\n'.format(track.link, track.name, )
 
-		stream = open(filePath, 'w')
-		stream.write(contents)
-		stream.close()
+		os.makedirs(os.path.dirname(filePath), exist_ok=True)
+		with open(filePath, 'w') as stream:
+			stream.write(contents)
 
 		console.success('dump file created')
 
@@ -129,8 +126,8 @@ class LoadAlbum:
 		self.metadata.name = album.name
 		self.metadata.cover = album.images[0]['url']
 
-		console.info('album name is =={0}== by =={1}=='.format(self.metadata.name, self.metadata.artist))
-		console.info('number of tracks in the album is =={0}==, loading them now'.format(album.tracks.total))
+		console.success('album name is =={0}== by =={1}=='.format(self.metadata.name, self.metadata.artist))
+		console.success('number of tracks in the album is =={0}==, loading them now'.format(album.tracks.total))
 
 		self.loadAlbumTracks(album.tracks)
 		self.dumpFile()
@@ -154,8 +151,8 @@ class LoadAlbum:
 		for track in self.tracks:
 			contents += '{0}\n'.format(track.link, track.name, )
 
-		stream = open(filePath, 'w')
-		stream.write(contents)
-		stream.close()
+		os.makedirs(os.path.dirname(filePath), exist_ok=True)
+		with open(filePath, 'w') as stream:
+			stream.write(contents)
 
 		console.success('dump file created')
