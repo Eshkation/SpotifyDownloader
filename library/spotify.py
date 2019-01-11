@@ -38,7 +38,7 @@ class LoadTrack:
 		for artist in track.artists:
 			track_artists.append(artist['name'])
 		self.metadata.featured_artists = ';'.join(track_artists)
-		self.metadata.artist = self.metadata.featuredArtists.split(';')[0]
+		self.metadata.artist = self.metadata.featured_artists.split(';')[0]
 
 		self.metadata.album_name = track.album.name
 		album_artists = []
