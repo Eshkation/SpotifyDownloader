@@ -78,13 +78,18 @@ class MainProcessor:
 					track = LoadTrack(track_id)
 
 					console.success('Found track in dump file: =={0}== by =={1}==, starting youtube search'.format(track.metadata.name, track.metadata.artist))
-					youtube_video = SearchSong(track)
-					if (youtube_video.metadata):
-						download = DownloadVideo(track, youtube_video, save_directory)
-						if (not download.SUCCESS):
-							console.warning('Could not successfully process =={0}=='.format(track_id))
-							with open(dump_file+'.errors', 'a') as stream:
-								stream.write('{0} ## {1}\n'.format(line, download.EXCEPTION))
+					file_path_name = os.path.join(save_directory, '{0} - {1}.%(ext)s'.format(track.metadata.artist, track.metadata.name))
+					file_path_name = file_path_name.replace('/', '_')
+					if (os.path.exists(file_path_name.replace('%(ext)s', 'mp3'))):
+						console.warning('Audio file for =={0} - {1}== already exists, skipping download'.format(track.metadata.name, track.metadata.name))
+					else:
+						youtube_video = SearchSong(track)
+						if (youtube_video.metadata):
+							download = DownloadVideo(track, youtube_video, save_directory)
+							if (not download.SUCCESS):
+								console.warning('Could not successfully process =={0}=='.format(track_id))
+								with open(dump_file+'.errors', 'a') as stream:
+									stream.write('{0} ## {1}\n'.format(line, download.EXCEPTION))
 
 			with open(dump_file, 'w+') as stream:
 				stream.write('\n'.join(content_lines))
