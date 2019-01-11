@@ -94,7 +94,8 @@ class LoadPlaylist:
 		for track in self.tracks:
 			contents += '{0}\n'.format(track.link, track.name, )
 
-		os.makedirs(os.path.dirname(file_path), exist_ok=True)
+		if (len(os.path.dirname(file_path)) > 0):
+			os.makedirs(os.path.dirname(file_path), exist_ok=True)
 		with open(file_path, 'w') as stream:
 			stream.write(contents)
 
@@ -151,7 +152,8 @@ class LoadAlbum:
 		for track in self.tracks:
 			contents += '{0}\n'.format(track.link, track.name, )
 
-		os.makedirs(os.path.dirname(file_path), exist_ok=True)
+		if (len(os.path.dirname(file_path)) > 0):
+			os.makedirs(os.path.dirname(file_path), exist_ok=True)
 		with open(file_path, 'w') as stream:
 			stream.write(contents)
 
