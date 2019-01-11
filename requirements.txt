@@ -3,5 +3,4 @@ isodate==0.6.0
 mutagen==1.42.0
 youtube_dl==2018.12.17
 spotipy==2.4.4
-requests==2.18.4
 python-dotenv==0.10.1
