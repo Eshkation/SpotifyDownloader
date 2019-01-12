@@ -290,6 +290,9 @@ class SearchSong:
 		if (not 'instrumental' in fx_track_name and 'instrumental' in title):
 			points -= 12
 
+		if (not 'piano sheet' in fx_track_name and 'piano sheet' in title):
+			points -= 12
+
 		if (not any(ext in fx_track_name for ext in ['glastonbury', 'lollapalooza', 'coachella'])):
 			if any(ext in title for ext in ['glastonbury', 'lollapalooza', 'coachella']):
 				points -= 12

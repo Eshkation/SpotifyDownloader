@@ -116,5 +116,8 @@ class MainProcessor:
 			console.config('Album request found, id is =={0}=='.format(album_id))
 			LoadAlbum(album_id, self.save_directory)
 
+		else:
+			console.error('could not identify source url: =={0}=='.format(source_url))
+
 
 MainProcessor()
