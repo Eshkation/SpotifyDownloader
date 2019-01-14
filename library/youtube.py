@@ -309,8 +309,6 @@ class SearchSong:
 		if (fx_channel_name == fx_artist_name+'vevo'):
 			points += 9
 
-		dur_diff = abs(video.duration - self.track.duration)
-		if (dur_diff < 10):
-			points += 15-int(dur_diff)
+		points += 15-int(dur_diff)
 
 		return points
