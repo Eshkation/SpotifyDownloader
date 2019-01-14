@@ -20,6 +20,7 @@ class MainProcessor:
 """)
 		self.save_directory = ''
 		self.include_dump_file_name = True
+		self.include_album_name = False
 
 		self.process_start_time = 0
 		self.get_given_params()
@@ -35,8 +36,15 @@ class MainProcessor:
 		parser.add_argument('-f', '--folder',
 			help = 'Directory choosen to write the files'
 		)
+		parser.add_argument('-l', '--lookup',
+			help = 'Spotify search'
+		)
 		parser.add_argument('-nf', '--nofilename',
 			help = 'Include dump file name in the save directory',
+			action = 'store_true'
+		)
+		parser.add_argument('-ia', '--includealbumname',
+			help = 'Include track album name in the save directory',
 			action = 'store_true'
 		)
 		params, _ = parser.parse_known_args()
@@ -50,6 +58,10 @@ class MainProcessor:
 			self.include_dump_file_name = False
 			console.config('Save directory will not include dump file name')
 
+		if (params.includealbumname):
+			self.include_album_name = True
+			console.config('Save directory will include track\'s album name')
+
 		if (params.source):
 			console.config('given source is =={0}==, identifying url type'.format(params.source))
 			self.identify_given_source(params.source)
@@ -57,6 +69,9 @@ class MainProcessor:
 		elif (params.download):
 			console.config('starting download from =={0}=='.format(params.download))
 			self.prepare_download(params.download)
+
+		elif (params.lookup):
+			console.config('searching for =={0}=='.format(params.lookup))
 
 	def prepare_download(self, dump_file):
 		self.process_start_time = time.time()
@@ -78,14 +93,18 @@ class MainProcessor:
 					track = LoadTrack(track_id)
 
 					console.success('Found track in dump file: =={0}== by =={1}==, starting youtube search'.format(track.metadata.name, track.metadata.artist))
-					file_path_name = os.path.join(save_directory, '{0} - {1}.%(ext)s'.format(track.metadata.artist, track.metadata.name))
+					final_save_dir = save_directory
+					if (self.include_album_name):
+						final_save_dir = os.path.join(final_save_dir, validate.file_name(track.metadata.album_name))
+
+					file_path_name = os.path.join(final_save_dir, '{0} - {1}.%(ext)s'.format(validate.file_name(track.metadata.artist), validate.file_name(track.metadata.name)))
 					file_path_name = file_path_name.replace('/', '_')
 					if (os.path.exists(file_path_name.replace('%(ext)s', 'mp3'))):
 						console.warning('Audio file for =={0} - {1}== already exists, skipping download'.format(track.metadata.artist, track.metadata.name))
 					else:
 						youtube_video = SearchSong(track)
 						if (youtube_video.metadata):
-							download = DownloadVideo(track, youtube_video, save_directory)
+							download = DownloadVideo(track, youtube_video, final_save_dir)
 							if (not download.SUCCESS):
 								console.warning('Could not successfully process =={0}=='.format(track_id))
 								with open(dump_file+'.errors', 'a') as stream:
@@ -103,17 +122,17 @@ class MainProcessor:
 
 		if (private_playlist):
 			username, playlist_id = private_playlist.group(2), private_playlist.group(3)
-			console.config('Private playlist request found, username is =={0}== and playlist id is =={1}=='.format(username, playlist_id))
+			console.config('Private playlist author is =={0}== and playlist id is =={1}=='.format(username, playlist_id))
 			LoadPlaylist(username, playlist_id, self.save_directory)
 
 		elif (public_playlist):
 			playlist_id = public_playlist.group(2)
-			console.config('Playlist request found, id is =={0}=='.format(playlist_id))
+			console.config('Playlist id is =={0}=='.format(playlist_id))
 			LoadPlaylist('', playlist_id, self.save_directory)
 
 		elif (album):
 			album_id = album.group(2)
-			console.config('Album request found, id is =={0}=='.format(album_id))
+			console.config('Album id is =={0}=='.format(album_id))
 			LoadAlbum(album_id, self.save_directory)
 
 		else:

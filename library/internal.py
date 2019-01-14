@@ -14,6 +14,12 @@ class objectify(dict):
                 value = objectify(value)
             self.__setitem__(key, value)
 
+class validate:
+	@staticmethod
+	def file_name(name):
+		return re.sub(r'[\\\/\:\*\?\"\<\>\|]', '', name)
+
+
 class console:
     """
     when calling the console class to display messages, use == to

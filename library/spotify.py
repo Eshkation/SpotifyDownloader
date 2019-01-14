@@ -150,10 +150,11 @@ class LoadAlbum:
 
 		contents = '#album\n@name {0}\n@artist {1}\n@cover {2}\n\n'.format(self.metadata.name, self.metadata.artist, self.metadata.cover)
 		for track in self.tracks:
-			contents += '{0}\n'.format(track.link, track.name, )
+			contents += '{0}\n'.format(track.link, track.name)
 
 		if (len(os.path.dirname(file_path)) > 0):
 			os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
 		with open(file_path, 'w') as stream:
 			stream.write(contents)
 
