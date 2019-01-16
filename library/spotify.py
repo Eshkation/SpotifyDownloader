@@ -75,28 +75,24 @@ class LoadPlaylist:
 
 	def request_playlist_tracks(self):
 		results = self.SPClient.user_playlist_tracks(self.username, self.playlist_id)
-		if ('items' in results):
-			for data in results['items']:
-				data = objectify(data)
-				self.tracks.append(objectify({
-					'duration': data.track.duration_ms / 1e3,
-					'link': data.track.external_urls.spotify,
-					'name': data.track.name,
-					'number': data.track.track_number
-				}))
-		while 'next' in results:
-			results = self.SPClient.next(results)
-			if (results):
-				for data in results['items']:
-					data = objectify(data)
-					self.tracks.append(objectify({
-						'duration': data.track.duration_ms / 1e3,
-						'link': data.track.external_urls.spotify,
-						'name': data.track.name,
-						'number': data.track.track_number
-					}))
-			else:
-				break
+		self.add_playlist_results(results)
+		if 'next' in results:
+			while results['next']:
+				next_results = self.SPClient.next(results)
+				self.add_playlist_results(next_results)
+
+	def add_playlist_results(self, results):
+		if 'tracks' not in results:
+			console.warning('No tracks in playlist found!')
+			return
+		for data in results['tracks']['items']:
+			data = objectify(data)
+			self.tracks.append(objectify({
+				'duration': data.track.duration_ms / 1e3,
+				'link': data.track.external_urls.spotify,
+				'name': data.track.name,
+				'number': data.track.track_number
+			}))
 
 	def dump_file(self):
 		file_path = os.path.join(self.save_path, self.metadata.name+'.txt')
