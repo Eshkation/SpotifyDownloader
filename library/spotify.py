@@ -74,12 +74,12 @@ class LoadPlaylist:
 		console.success('Playlist name is =={0}== by =={1}=='.format(self.metadata.name, self.metadata.owner))
 
 	def request_playlist_tracks(self):
-		results = self.SPClient.user_playlist_tracks(self.username, self.playlist_id)
+		results = self.SPClient.user_playlist_tracks(self.username, self.playlist_id, offset=250, limit=5)
 		self.add_playlist_results(results)
 		if 'next' in results:
 			while results['next']:
-				next_results = self.SPClient.next(results)
-				self.add_playlist_results(next_results)
+				results = self.SPClient.next(results)
+				self.add_playlist_results(results)
 
 	def add_playlist_results(self, results):
 		if 'tracks' not in results:
