@@ -75,8 +75,7 @@ class LoadPlaylist:
 
 	def request_playlist_tracks(self):
 		results = self.SPClient.user_playlist_tracks(self.username, self.playlist_id)
-		while results['next']:
-			results = self.SPClient.next(results)
+		if ('items' in results):
 			for data in results['items']:
 				data = objectify(data)
 				self.tracks.append(objectify({
@@ -85,6 +84,19 @@ class LoadPlaylist:
 					'name': data.track.name,
 					'number': data.track.track_number
 				}))
+		while 'next' in results:
+			results = self.SPClient.next(results)
+			if (results):
+				for data in results['items']:
+					data = objectify(data)
+					self.tracks.append(objectify({
+						'duration': data.track.duration_ms / 1e3,
+						'link': data.track.external_urls.spotify,
+						'name': data.track.name,
+						'number': data.track.track_number
+					}))
+			else:
+				break
 
 	def dump_file(self):
 		file_path = os.path.join(self.save_path, self.metadata.name+'.txt')
