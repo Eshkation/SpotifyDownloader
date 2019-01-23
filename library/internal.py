@@ -43,8 +43,8 @@ class console:
         console.__display__('lightred_ex', 'error', message, end)
 
     @staticmethod
-    def debug(message, end = None):
-        console.__display__('magenta', 'debug', message, end)
+    def debug(message, end = None, prefix = 'debug'):
+        console.__display__('magenta', prefix, message, end)
 
     @staticmethod
     def config(message, end = None):

@@ -16,8 +16,65 @@ SPCredentials = SpotifyClientCredentials(
 )
 
 
+class SpotifySearch:
+	def __init__(self, query, query_type, save_dir = ''):
+		self.SPClient = spotipy.Spotify(
+			client_credentials_manager = SPCredentials
+		)
+		self.query = query
+		self.query_type = query_type
+		self.save_dir = save_dir
+
+		console.info('Searching for =={0}== with query =={1}=='.format(query_type, query))
+		self.begin_search()
+
+	def begin_search(self):
+		results = self.SPClient.search(self.query, limit = 15, type = self.query_type)
+		index = 1
+		creator_type = 'owner' if (self.query_type == 'playlist') else 'artists'
+		if (len(results[self.query_type+'s']['items']) > 0):
+			console.debug('=={0:>2} {1:>35} {2:>45} {3:>25}=='.format('no.', creator_type, self.query_type+' name', 'release date'), prefix = '')
+			for data in results[self.query_type+'s']['items']:
+				item = objectify(data)
+				artist_name = ''
+				if (creator_type == 'owner'):
+					artist_name = item[creator_type].display_name
+				else:
+					artist_name = item[creator_type][0]['name']
+				console.debug('#{0:>02d} {1:>35} {2:>45} {3:>25}'.format(
+					index,
+					artist_name[:32].strip()+'...' if len(artist_name) > 35 else artist_name.strip(),
+					item.name[:32].strip()+'...'  if len(item.name) > 35 else item.name.strip(),
+					item.release_date.split('-')[0] if ('release_date' in item) else '-'
+				), prefix = '')
+				index += 1
+			selected_number = int(input('\nSelect search item number:\n> #'))-1
+			if (selected_number >= 0 and selected_number <= index):
+				selected_item = objectify(results[self.query_type+'s']['items'][selected_number])
+				artist_name = ''
+				if (creator_type == 'owner'):
+					artist_name = selected_item[creator_type].display_name
+				else:
+					artist_name = selected_item[creator_type][0]['name']
+				uri_id = selected_item.id
+				console.success('Selected {0} is =={1}== by =={2}==, uri id is =={3}=='.format(self.query_type, selected_item.name, artist_name, uri_id))
+				if (self.query_type == 'album'):
+					LoadAlbum(uri_id, self.save_dir)
+
+				elif (self.query_type == 'playlist'):
+					LoadPlaylist(artist_name, uri_id)
+
+				elif (self.query_type == 'track'):
+					with open(os.path.join(self.save_dir, validate.file_name(selected_item.name+'.txt')), 'w') as stream:
+						stream.write('https://open.spotipy.com/track/'+uri_id)
+			else:
+				console.error('invalid number')
+		else:
+			console.error('Search did not return results')
+
+
 class LoadTrack:
-	def __init__(self, track_id):
+	def __init__(self, track_id, save = False, save_dir = ''):
 		self.SPClient = spotipy.Spotify(
 			client_credentials_manager = SPCredentials
 		)

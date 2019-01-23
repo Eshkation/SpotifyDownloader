@@ -30,12 +30,16 @@ Open `init.py` on cmd suplying the needed arguments.
 
 `init.py --download file_path.txt` downloads the tracks in the dump file.
 
+`init.py --lookup (album:|track:|playlist:)query` searchs the query on spotify and generates a dump file.
+
+
 You can also provide these arguments in the command line:
 
 `init.py --folder path --source ...` changes the files destination path.
 
-`init.py --nofilename` removes the dump file name from the destination path
+`init.py --nofilename` removes the dump file name from the destination path.
 
+`init.py --includealbumname` include the track album name in the destination path.
 
 ### Example
 `init.py -s "https://open.spotify.com/album/0cjMGmZKB9ZWzcb0VcASpf"` Will create a dump file with the album name in the origin folder.

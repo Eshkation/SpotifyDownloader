@@ -11,7 +11,7 @@ import time
 
 class MainProcessor:
 	def __init__(self):
-		print(getattr(colorama.Fore, 'CYAN')+"""
+		print(getattr(colorama.Fore, 'CYAN')+r"""
    ____          __  _ ___     ___                  __             __
   / __/__  ___  / /_(_) _/_ __/ _ \___ _    _____  / /__  ___ ____/ /__ ____
  _\ \/ _ \/ _ \/ __/ / _/ // / // / _ \ |/|/ / _ \/ / _ \/ _ `/ _  / -_) __/
@@ -56,7 +56,7 @@ class MainProcessor:
 
 		if (params.nofilename):
 			self.include_dump_file_name = False
-			console.config('Save directory will not include dump file name')
+			console.config('Save directory will ==not== include dump file name')
 
 		if (params.includealbumname):
 			self.include_album_name = True
@@ -71,7 +71,18 @@ class MainProcessor:
 			self.prepare_download(params.download)
 
 		elif (params.lookup):
-			console.config('searching for =={0}=='.format(params.lookup))
+			self.identify_search(params.lookup)
+		else:
+			console.error('Process terminated by user')
+
+	def identify_search(self, query):
+		if (':' in query):
+			search_type, search_query = query.split(':', 1)
+			search_type = search_type.lower()
+			if (search_type in ['album', 'playlist', 'track']):
+				SpotifySearch(search_query, search_type, self.save_directory)
+				return
+		console.error('Search must be (album:|track:|playlist:)name, e.g: ==init.py -l album:m83 - junk==')
 
 	def prepare_download(self, dump_file):
 		self.process_start_time = time.time()
