@@ -1,6 +1,8 @@
 # miscellaneous classes that are used by the code
 
 import colorama
+import datetime
+import inspect
 import re
 
 colorama.init()
@@ -20,51 +22,94 @@ class validate:
 		return re.sub(r'[\\\/\:\*\?\"\<\>\|]', '', name)
 
 
-class console:
-    """
-    when calling the console class to display messages, use == to
-    highlight important words
-    """
+class power_console:
+	def __init__(self, prefix):
+		self.set_prefix(prefix)
+		self.tags = {
+			 'B': 'BLUE',
+			 'C': 'CYAN',
+			 'G': 'GREEN',
+			 'M': 'MAGENTA',
+			 'R': 'RED',
+			 'W': 'WHITE',
+			 'Y': 'YELLOW',
+			 'LB': 'LIGHTBLUE_EX',
+			 'LC': 'LIGHTCYAN_EX',
+			 'LG': 'LIGHTGREEN_EX',
+			 'LM': 'LIGHTMAGENTA_EX',
+			 'LR': 'LIGHTRED_EX',
+			 'LW': 'LIGHTWHITE_EX',
+			 'LY': 'LIGHTYELLOW_EX',
+		}
+		self.sql_keywords = ['ABORT', 'ACTION', 'ADD', 'AFTER', 'ALL', 'ALTER', 'ANALYZE', 'AND', 'AS', 'ASC', 'ATTACH', 'AUTOINCREMENT', 'BEFORE', 'BEGIN', 'BETWEEN', 'BY', 'CASCADE', 'CASE', 'CAST', 'CHECK', 'COLLATE', 'COLUMN', 'COMMIT', 'CONFLICT', 'CONSTRAINT', 'CREATE', 'CROSS', 'CURRENT', 'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_TIMESTAMP', 'DATABASE', 'DEFAULT', 'DEFERRABLE', 'DEFERRED', 'DELETE', 'DESC', 'DETACH', 'DISTINCT', 'DO', 'DROP', 'EACH', 'ELSE', 'END', 'ESCAPE', 'EXCEPT', 'EXCLUSIVE', 'EXISTS', 'EXPLAIN', 'FAIL', 'FILTER', 'FOLLOWING', 'FOR', 'FOREIGN', 'FROM', 'FULL', 'GLOB', 'GROUP', 'HAVING', 'IF', 'IGNORE', 'IMMEDIATE', 'IN', 'INDEX', 'INDEXED', 'INITIALLY', 'INNER', 'INSERT', 'INSTEAD', 'INTERSECT', 'INTO', 'IS', 'ISNULL', 'JOIN', 'KEY', 'LEFT', 'LIKE', 'LIMIT', 'MATCH', 'NATURAL', 'NO', 'NOT', 'NOTHING', 'NOTNULL', 'NULL', 'OF', 'OFFSET', 'ON', 'OR', 'ORDER', 'OUTER', 'OVER', 'PARTITION', 'PLAN', 'PRAGMA', 'PRECEDING', 'PRIMARY', 'QUERY', 'RAISE', 'RANGE', 'RECURSIVE', 'REFERENCES', 'REGEXP', 'REINDEX', 'RELEASE', 'RENAME', 'REPLACE', 'RESTRICT', 'RIGHT', 'ROLLBACK', 'ROW', 'ROWS', 'SAVEPOINT', 'SELECT', 'SET', 'TABLE', 'TEMP', 'TEMPORARY', 'THEN', 'TO', 'TRANSACTION', 'TRIGGER', 'UNBOUNDED', 'UNION', 'UNIQUE', 'UPDATE', 'USING', 'VACUUM', 'VALUES', 'VIEW', 'VIRTUAL', 'WHEN', 'WHERE', 'WINDOW', 'WITH', 'WITHOUT']
+		self.sql_keywords = re.compile('\\b'+'\\b|\\b'.join(map(re.escape, self.sql_keywords))+'\\b')
+		self.sql_types = ['CHARACTER', 'CHAR', 'VARCHAR', 'BOOLEAN', 'SMALLINT', 'INTEGER', 'INT', 'DECIMAL', 'NUMERIC', 'REAL', 'FLOAT', 'DOUBLE PRECISION', 'DATE', 'TEXT', 'TIME', 'TIMESTAMP', 'CLOB', 'BLOB']
+		re_types = []
+		for data_type in self.sql_types:
+			re_types.append(r'\b({0})(\((.*)\)|)'.format(data_type))
+		self.sql_types = '|'.join(re_types)
 
-    @staticmethod
-    def info(message, end = None):
-        console.__display__('lightblue_ex', 'info', message, end)
+	def set_prefix(self, prefix):
+		self.prefix = '~\\{0}'.format(prefix.replace('.', '\\'))
 
-    @staticmethod
-    def warning(message, end = None):
-        console.__display__('lightyellow_ex', 'warning', message, end)
+	def generate_prefix(self, caller, p_type):
+		current_date = datetime.datetime.now().strftime('%H:%M:%S')
+		output_prefix = u'<G>→ <LC>{0} <C>[{1} {2}<C>]<M>› <W>{{0}}'.format(
+			self.prefix+'\\'+caller,
+			current_date,
+			p_type,
+		)
+		return self.parse_color_tag(output_prefix)
 
-    @staticmethod
-    def success(message, end = None):
-        console.__display__('lightgreen_ex', 'success', message, end)
+	def parse_color_tag(self, message):
+		message = str(message)
+		output = re.sub(r'<([A-Z]+)>',
+			lambda color_tag: self.get_color_from_tag(
+				color_tag.group(1)
+			),
+			message
+		)
+		return output
 
-    @staticmethod
-    def error(message, end = None):
-        console.__display__('lightred_ex', 'error', message, end)
+	def get_color_from_tag(self, tag):
+		if (tag in self.tags):
+			return getattr(colorama.Fore, self.tags[tag])
 
-    @staticmethod
-    def debug(message, end = None, prefix = 'debug'):
-        console.__display__('magenta', prefix, message, end)
+		elif (tag.replace('#', '') in self.tags):
+			return getattr(colorama.Back, self.tags[tag])
 
-    @staticmethod
-    def config(message, end = None):
-        console.__display__('cyan', 'config', message, end)
+		return '<{0}>'.format(tag)
 
-    @staticmethod
-    def __display__(color, prefix, message, end = '\n'):
-        background = getattr(colorama.Back, color.upper())
-        foreground = getattr(colorama.Fore, color.upper())
-        text_color = getattr(colorama.Fore, 'WHITE')
+	def info(self, message, minified = False, tabs = 0, end = '\n'):
+		self.generate_print(
+			'<LC>INFO ~', message, inspect.stack()[1].function, minified, tabs, end
+		)
 
-        message = re.sub(r'==(.*?)==', lambda highlight: '{0}{1}{2}'.format(foreground, highlight.group(1), text_color), message)
-        message = message[0].upper()+message[1:]
+	def warning(self, message, minified = False, tabs = 0):
+		self.generate_print(
+			'<LY>WARNING #', message, inspect.stack()[1].function, minified, tabs
+		)
 
-        print('{background} {black_background} {foreground}{prefix} {text_color}{black_background}{message}'.format(
-        	background = background,
-            background_color = background,
-            black_background = getattr(colorama.Back, 'BLACK'),
-            foreground = foreground,
-            message = message,
-            prefix = prefix.upper(),
-            text_color = text_color
-        ), end = end)
+	def error(self, message, minified = False, tabs = 0):
+		self.generate_print(
+			'<R>ERROR !', message, inspect.stack()[1].function, minified, tabs
+		)
+
+	def success(self, message, minified = False, tabs = 0):
+		self.generate_print(
+			'<G>SUCCESS #', message, inspect.stack()[1].function, minified, tabs
+		)
+
+	def generate_print(self, prefix, message, caller, minified, tabs = 0, end = '\n'):
+		if (minified):
+			output = self.parse_color_tag('{0}<M>{1}<W>{{0}}'.format(
+				tabs * '\t',
+				tabs == 0 and '› ' or ''
+			))
+		else:
+			output = self.generate_prefix(caller, prefix.replace(' ', ' <LB>'))
+
+		print((output.format(
+				self.parse_color_tag(message.replace('\n', '\n' + (tabs * '\t')))
+			)+colorama.Style.RESET_ALL
+		).replace('\t', '    '), end = end)

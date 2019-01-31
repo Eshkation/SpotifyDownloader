@@ -23,13 +23,15 @@ class YoutubeDLLogger:
 		pass
 
 	def warning(self, msg):
-		console.warning(msg)
+		pass
 
 	def error(self, msg):
-		console.error(msg.replace('ERROR: ', ''))
+		pass
 
 class DownloadVideo:
 	def __init__(self, track, video, custom_dir = ''):
+		self.console = power_console('song.downloader')
+
 		self.track = track.metadata
 		self.video = video.metadata
 		self.save_path = custom_dir
@@ -44,13 +46,15 @@ class DownloadVideo:
 		self.start_download_time = 0
 		self.steps_downloaded = 0
 		self.average_velocity = 0
+		self.displayed_downloaded_message = False
+
 		self.start_download()
 
 	def start_download(self):
 		file_path_name = os.path.join(self.save_path, '{0} - {1}.%(ext)s'.format(self.track.artist, self.track.name))
 		file_path_name = file_path_name.replace('/', '_')
 		if (os.path.exists(file_path_name.replace('%(ext)s', 'mp3'))):
-			console.warning('Audio file for =={0} - {1}== already exists, skipping download'.format(self.track.artist, self.track.name))
+			self.console.warning('Audio file for <LY>{0} - {1}<W> already exists, skipping download'.format(self.track.artist, self.track.name))
 			self.file_path = file_path_name.replace('%(ext)s', 'mp3')
 			self.SUCCESS = True
 			self.ALREADY_EXISTS = True
@@ -68,18 +72,18 @@ class DownloadVideo:
 				'outtmpl': file_path_name,
 				'get-filename': True
 			}
-			console.info('starting youtube download')
+			self.console.info('Starting youtube song download')
 			try:
 				with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 					ydl.download([self.video.id.videoId])
-				console.info('applying metadata to file')
+				self.console.info('Applying metadata to music file', True)
 				self.applyTrackMetadata()
 			except Exception:
 				error = traceback.format_exc().replace('\n', ' ')
-				console.error(error)
+				self.console.error(error)
 				self.SUCCESS = False
 				self.EXCEPTION = error
-		console.debug('download process took =={0}s== to finish\n'.format(int(time.time()-self.start)))
+		self.console.info('download process took <LC>{0}s<W> to finish\n'.format(int(time.time()-self.start)), True)
 
 	def applyTrackMetadata(self):
 		audio_file = ID3(self.file_path)
@@ -146,29 +150,34 @@ class DownloadVideo:
 			bar_downloaded = '#' * downloaded_parts
 			bar_unfinished = ' ' * unfinished_parts
 
-			progress_bar = '[=={0}=={1}]'.format(bar_downloaded, bar_unfinished)
-			text = '{0} {1} downloaded, estimated download time: =={2}== at =={3}=='.format(progress_bar, display._percent_str, display._eta_str, display._speed_str)
+			progress_bar = '[<G>{0}<W>{1}]'.format(bar_downloaded, bar_unfinished)
+			text = '{0} {1} downloaded, estimated download time: {2} at {3}'.format(progress_bar, display._percent_str, display._eta_str, display._speed_str)
 
 			if (downloaded_parts == 0):
 				self.start_download_time = time.time()
 
 			elif (downloaded_parts == parts):
-				text = 'file downloaded, total download time: =={0}s==, average velocity: =={1:.2f} KiB/s=='.format(int(time.time() - self.start_download_time), (self.average_velocity/self.steps_downloaded)/1e3)
-				sys.stdout.write('\033[K')
-				console.info(text)
+				if (not self.displayed_downloaded_message):
+					text = 'File downloaded, total download time: {0}s at {1:.2f} KiB/s'.format(int(time.time() - self.start_download_time), (self.average_velocity/self.steps_downloaded)/1e3)
+					sys.stdout.write('\033[K')
+					self.console.info(text, True)
+					self.displayed_downloaded_message = True
 			else:
-				console.info(text, end = '\r')
+				self.console.info(text, True, end = '\r')
 
 
 		elif (display.status == 'finished'):
 			self.file_path, fileExtension = display.filename.rsplit('.', 1)
 			self.file_path = self.file_path+'.mp3'
-			console.success('finished downloading, file directory is =={0}==, starting file conversion'.format(self.file_path))
+			self.console.success('File directory is <G>{0}<W>, converting audio'.format(self.file_path), True)
 
 class SearchSong:
-	def __init__(self, track):
+	def __init__(self, track, download_low_score = False):
+		self.console = power_console('song.search')
+
 		self.track = track.metadata
 		self.metadata = {}
+		self.download_low_score = download_low_score
 
 		self.request_search()
 
@@ -214,23 +223,22 @@ class SearchSong:
 				if (video_points > selected_video[1]):
 					selected_video = [video, video_points]
 
-		if (selected_video[1] >= 3):
-			console.success('video =={0}== ranked =={1}== points (=={2}==)'.format(selected_video[0].snippet.title, selected_video[1], selected_video[0].id.videoId))
+		if (selected_video[1] >= 3 or self.download_low_score):
+			self.console.success('Video <G>{0}<W> ranked <G>{1}<W> points'.format(selected_video[0].snippet.title, selected_video[1]))
 			self.metadata = selected_video[0]
 		else:
 			self.metadata = False
 			self.SUCCESS = False
-			console.error('could not find a suitable video, the highest one ranked =={0}== points and is =={1}== (=={2}==)'.format(selected_video[1], selected_video[0].snippet.title, selected_video[0].id.videoId))
+			self.console.error('Could not find a suitable video, the highest one ranked <R>{0}<W> points and is <R>{1}'.format(selected_video[1], selected_video[0].snippet.title))
 
 	def attribute_meta_points(self, video):
 		points = 0
 		title = re.sub(r'[^\w\s]', '', video.snippet.title.lower())
-		title = re.sub(r'\((feat.|)(.*?)\)', '', title)
+		title = re.sub(r'\((feat.|)(.*?)\)', '', title).replace('  ', ' ')
 		fx_artist_name = re.sub(r'[^\w\s]', '', self.track.artist.lower())
 		fx_track_name = re.sub(r'[^\w\s]', '', self.track.name.lower())
-		fx_track_name = re.sub(r'\((feat.|)(.*?)\)', '', fx_track_name)
+		fx_track_name = re.sub(r'\((feat.|)(.*?)\)', '', fx_track_name).replace('  ', ' ')
 		fx_channel_name = re.sub(r'[^\w\s]', '', video.snippet.channelTitle.lower())
-
 		# either video title has track name
 		if (fx_track_name in title):
 			points += 3
@@ -249,6 +257,12 @@ class SearchSong:
 			points -= 6
 
 		if (re.search(r'of(f|)ici(a|e)l audio', title)):
+			if (not 'remix' in fx_track_name and 'remix' in title):
+				points += 2
+			else:
+				points += 20
+
+		if (re.search(r'of(f|)ici(a|e)l video', title)):
 			if (not 'remix' in fx_track_name and 'remix' in title):
 				points += 2
 			else:
@@ -273,11 +287,14 @@ class SearchSong:
 
 		# video title has live in it, but track doesn't
 		if (not 'live' in fx_track_name and 'live' in title):
-			points -= 15
+			points -= 40
 
 		# video title has cover in it, but track doesn't
 		if (not 'cover' in fx_track_name and 'cover' in title):
-			points -= 15
+			points -= 50
+
+		if (not 'acoustic' in fx_track_name and 'acoustic' in title):
+			points -= 30
 
 		# video title has edit in it, but track doesn't
 		if (not 'edit' in fx_track_name and 'edit' in title):

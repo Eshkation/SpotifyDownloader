@@ -18,6 +18,8 @@ SPCredentials = SpotifyClientCredentials(
 
 class SpotifySearch:
 	def __init__(self, query, query_type, save_dir = ''):
+		self.console = power_console('spotify.search')
+
 		self.SPClient = spotipy.Spotify(
 			client_credentials_manager = SPCredentials
 		)
@@ -25,7 +27,7 @@ class SpotifySearch:
 		self.query_type = query_type
 		self.save_dir = save_dir
 
-		console.info('Searching for =={0}== with query =={1}=='.format(query_type, query))
+		self.console.info('Searching for <LC>{0}<W> (<LC>{1}<W>)'.format(query, query_type))
 		self.begin_search()
 
 	def begin_search(self):
@@ -33,7 +35,7 @@ class SpotifySearch:
 		index = 1
 		creator_type = 'owner' if (self.query_type == 'playlist') else 'artists'
 		if (len(results[self.query_type+'s']['items']) > 0):
-			console.debug('=={0:>2} {1:>35} {2:>45} {3:>25}=='.format('no.', creator_type, self.query_type+' name', 'release date'), prefix = '')
+			self.console.info('<M>{0:>2} {1:>35} {2:>45} {3:>25}'.format('no.', creator_type, self.query_type+' name', 'release date'), True)
 			for data in results[self.query_type+'s']['items']:
 				item = objectify(data)
 				artist_name = ''
@@ -41,12 +43,12 @@ class SpotifySearch:
 					artist_name = item[creator_type].display_name
 				else:
 					artist_name = item[creator_type][0]['name']
-				console.debug('#{0:>02d} {1:>35} {2:>45} {3:>25}'.format(
+				self.console.info('#{0:>02d} {1:>35} {2:>45} {3:>25}'.format(
 					index,
 					artist_name[:32].strip()+'...' if len(artist_name) > 35 else artist_name.strip(),
 					item.name[:32].strip()+'...'  if len(item.name) > 35 else item.name.strip(),
 					item.release_date.split('-')[0] if ('release_date' in item) else '-'
-				), prefix = '')
+				), True)
 				index += 1
 			selected_number = int(input('\nSelect search item number:\n> #'))-1
 			if (selected_number >= 0 and selected_number <= index):
@@ -57,7 +59,7 @@ class SpotifySearch:
 				else:
 					artist_name = selected_item[creator_type][0]['name']
 				uri_id = selected_item.id
-				console.success('Selected {0} is =={1}== by =={2}==, uri id is =={3}=='.format(self.query_type, selected_item.name, artist_name, uri_id))
+				self.console.success('Selected {0} is <G>{1} - {2}<W>, uri id is {3}'.format(self.query_type, artist_name, selected_item.name, uri_id))
 				if (self.query_type == 'album'):
 					LoadAlbum(uri_id, self.save_dir)
 
@@ -68,9 +70,9 @@ class SpotifySearch:
 					with open(os.path.join(self.save_dir, validate.file_name(selected_item.name+'.txt')), 'w') as stream:
 						stream.write('https://open.spotipy.com/track/'+uri_id)
 			else:
-				console.error('invalid number')
+				self.console.error('Invalid item number')
 		else:
-			console.error('Search did not return results')
+			self.console.error('Search did not return results')
 
 
 class LoadTrack:
@@ -106,6 +108,8 @@ class LoadTrack:
 
 class LoadPlaylist:
 	def __init__(self, username, playlist_id, save_path = ''):
+		self.console = power_console('loader.playlist')
+
 		self.SPClient = spotipy.Spotify(
 			client_credentials_manager = SPCredentials
 		)
@@ -115,10 +119,10 @@ class LoadPlaylist:
 		self.tracks = []
 		self.metadata = objectify({})
 
-		console.info('Requesting playlist metadata, given username is =={0}== and playlist id is =={1}=='.format(username or 'none', playlist_id))
+		self.console.info('Requesting playlist metadata')
 		self.request_playlist_info()
 		self.request_playlist_tracks()
-		console.success('finished loading playlist, =={0}== songs were found'.format(len(self.tracks)))
+		self.console.success('finished loading playlist, {0} songs were found'.format(len(self.tracks)))
 		self.dump_file()
 
 	def request_playlist_info(self):
@@ -128,7 +132,7 @@ class LoadPlaylist:
 		self.metadata.owner = playlist.owner.display_name
 		self.metadata.cover = playlist.images[0]['url']
 		self.metadata.desc = playlist.description
-		console.success('Playlist name is =={0}== by =={1}=='.format(self.metadata.name, self.metadata.owner))
+		self.console.success('Playlist is <G>{0}<W> by <G>{1}'.format(self.metadata.name, self.metadata.owner))
 
 	def request_playlist_tracks(self):
 		results = self.SPClient.user_playlist_tracks(self.username, self.playlist_id)
@@ -157,7 +161,7 @@ class LoadPlaylist:
 
 	def dump_file(self):
 		file_path = os.path.join(self.save_path, self.metadata.name+'.txt')
-		console.info('saving dump file to =={0}=='.format(file_path))
+		self.console.info('Saving dump file to <LC>{0}'.format(file_path))
 
 		contents = '#playlist\n@name {0}\n@description {1}\n@owner {2}\n@cover {3}\n\n'.format(self.metadata.name, self.metadata.desc, self.metadata.owner, self.metadata.cover)
 		for track in self.tracks:
@@ -168,16 +172,18 @@ class LoadPlaylist:
 		with open(file_path, 'w') as stream:
 			stream.write(contents)
 
-		console.success('dump file created')
+		self.console.success('Dump file successfully generated')
 
 class LoadAlbum:
 	def __init__(self, album_id, save_path = ''):
+		self.console = power_console('loader.album')
+
 		self.SPClient = spotipy.Spotify(
 			client_credentials_manager = SPCredentials
 		)
 		self.save_path = save_path
 
-		console.info('gathering album data, given id is =={0}=='.format(album_id))
+		self.console.info('Gathering album data (<LC>ID_{0}<W>)'.format(album_id))
 
 		self.album_id = album_id
 		self.tracks = []
@@ -196,8 +202,8 @@ class LoadAlbum:
 		self.metadata.name = album.name
 		self.metadata.cover = album.images[0]['url']
 
-		console.success('album name is =={0}== by =={1}=='.format(self.metadata.name, self.metadata.artist))
-		console.success('number of tracks in the album is =={0}==, loading them now'.format(album.tracks.total))
+		self.console.success('Album <G>{0}<W> by <G>{1}'.format(self.metadata.name, self.metadata.artist))
+		self.console.success('<G>{0}<W> tracks were found'.format(album.tracks.total))
 
 		self.load_album_tracks(album.tracks)
 		self.dump_file()
@@ -211,11 +217,11 @@ class LoadAlbum:
 				'name': data.name,
 				'number': data.track_number
 			}))
-		console.success('finished loading tracks, ready to dump file')
+		self.console.success('finished loading tracks, ready to dump file')
 
 	def dump_file(self):
 		file_path = os.path.join(self.save_path, self.metadata.name+'.txt')
-		console.info('saving dump file to =={0}=='.format(file_path))
+		self.console.info('Writing dump file to directory <LC>{0}'.format(file_path))
 
 		contents = '#album\n@name {0}\n@artist {1}\n@cover {2}\n\n'.format(self.metadata.name, self.metadata.artist, self.metadata.cover)
 		for track in self.tracks:
@@ -227,4 +233,4 @@ class LoadAlbum:
 		with open(file_path, 'w') as stream:
 			stream.write(contents)
 
-		console.success('dump file created')
+		self.console.success('Dump file generated')
