@@ -235,7 +235,7 @@ class SearchSong:
 		points = 0
 		title = re.sub(r'[^\w\s]', '', video.snippet.title.lower())
 		title = re.sub(r'\((feat.|)(.*?)\)', '', title).replace('  ', ' ')
-		fx_artist_name = re.sub(r'[^\w\s]', '',s elf.track.artist.lower())
+		fx_artist_name = re.sub(r'[^\w\s]', '',self.track.artist.lower())
 		fx_track_name = re.sub(r'[^\w\s]', '', self.track.name.lower())
 		fx_track_name = re.sub(r'\((feat.|)(.*?)\)', '', fx_track_name).replace('  ', ' ')
 		fx_channel_name = re.sub(r'[^\w\s]', '', video.snippet.channelTitle.lower())
