@@ -134,7 +134,6 @@ class MainProcessor:
 
         while content_lines:
             line = content_lines.pop(0)
-            print(line)
             if (line.startswith('http')):
                 track_id = re.search(
                     'http(s|)://open.spotify.com/track/([^##]+)', line)
