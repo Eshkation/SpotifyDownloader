@@ -163,6 +163,10 @@ class LoadPlaylist:
     def request_playlist_tracks(self):
         results = self.SPClient.user_playlist_tracks(
             self.username, self.playlist_id)
+
+        if ('tracks' in results):
+            results = results['tracks']
+
         if ('items' in results):
             for data in results['items']:
                 data = objectify(data)

@@ -15,6 +15,7 @@ import sys
 import time
 import traceback
 import youtube_dl
+import html
 
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_CLIENT_KEY', '')
 
@@ -232,6 +233,7 @@ class SearchSong:
 			self.console.error('Could not find a suitable video, the highest one ranked <R>{0}<W> points and is <R>{1}'.format(selected_video[1], selected_video[0].snippet.title))
 
 	def attribute_meta_points(self, video):
+		video.snippet.title = html.unescape(video.snippet.title)
 		points = 0
 		title = re.sub(r'[^\w\s]', '', video.snippet.title.lower())
 		title = re.sub(r'\((feat.|)(.*?)\)', '', title).replace('  ', ' ')
